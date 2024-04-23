@@ -3,22 +3,31 @@
 
 int main()
 {
-    int N = 0;
+  int N = 0;
 
-    printf("Введите размер массива\n");
-    scanf("%d", &N);
+  printf("Введите размер массива\n");
+  scanf("%d", &N);
 
-    int c = 1;
-    int matrix[N];
-    for (int i = 0; i < N; i++)
-    {
-        scanf("%d", &matrix[i]);
-    }
-    for (int i = N - 1; i >= 0; i--)
-    {
-        printf("%d ", matrix[i]);
-    }
-    putchar('\n');
+  int matrix[N];
+  printf("Ввод: ");
+  for (int i = 0; i < N; i++) {
+    matrix[i] = i + 1;
+    printf("%d ", matrix[i]);
+  }
+  putchar('\n');
 
-    return 0;
+  for (int i = 0; i < N / 2; i++) {
+    int temp = matrix[i];
+    matrix[i] = matrix[N - i - 1];
+    matrix[N - i - 1] = temp;
+  }
+
+  printf("Вывод: ");
+
+  for (int i = 0; i < N; i++) {
+    printf("%d ", matrix[i]);
+  }
+  putchar('\n');
+
+  return 0;
 }
