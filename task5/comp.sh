@@ -1,1 +1,0 @@
-gcc -o zd2 -fno-stack-protector -no-pie -g -O0 zd2.c
