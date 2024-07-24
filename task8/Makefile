@@ -2,11 +2,11 @@ CC = gcc
 INCLUDE_DIR = include
 LIB_DIR = lib
 OBJ_DIR = obj
-CFLAGS = -Wall -Wextra -I$(INCLUDE_DIR)
+CFLAGS = -Wall -Wextra -I$(INCLUDE_DIR) -fPIC
 
-LIB_SRC = $(wildcard $(LIB_DIR)/*.c) # wildcard позволяет находить все файлы .c в указанной директории
-LIB_OBJ = $(patsubst $(LIB_DIR)/%.c, $(OBJ_DIR)/%.o, $(LIB_SRC)) # patsubst преобразует пути к исх. файлам в пути к объект. файлам
-LIB_NAME = libcalc.a
+LIB_SRC = $(wildcard $(LIB_DIR)/*.c)
+LIB_OBJ = $(patsubst $(LIB_DIR)/%.c, $(OBJ_DIR)/%.o, $(LIB_SRC))
+LIB_NAME = libcalc.so
 
 APP_SRC = main.c
 APP_OBJ = $(patsubst %.c, $(OBJ_DIR)/%.o, $(APP_SRC))
@@ -18,7 +18,7 @@ $(BIN) : $(APP_OBJ) $(LIB_NAME)
 	$(CC) $(CFLAGS) -o $@ $(APP_OBJ) -L. -lcalc 
 
 $(LIB_NAME): $(LIB_OBJ)
-	ar rcs $@ $^
+	$(CC) -shared -o $@ $^
 
 $(OBJ_DIR)/%.o: $(LIB_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -33,6 +33,7 @@ clean:
 	rm -rf $(BIN) $(OBJ_DIR) $(LIB_NAME)
 
 run:
-	./$(BIN)
+	export LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH && ./$(BIN)
+	
 
 .PHONY: all clean run
