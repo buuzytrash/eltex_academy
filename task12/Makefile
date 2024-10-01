@@ -11,10 +11,10 @@ BINS = pipe_fork serv cli shabash_V2
 all: $(BINS)
 
 $(BINS): %: $(OBJ_DIR)/%.o
-	$(CC) $(CFLAGS) -o $@ $< -pthread
+	$(CC) $(CFLAGS) -o $@ $< 
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@ -pthread
+	$(CC) $(CFLAGS) -c $< -o $@ 
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR) 
