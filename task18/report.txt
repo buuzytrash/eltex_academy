@@ -1,0 +1,29 @@
+1. Собираем ядро для архитектуры arm в репозитории исходного ядра Linux, используя следующие команды:
+    ARCH=arm make defconfig - сборка дефолтного ядра с указанием целевой архитектуры
+    ARCH=arm make CROSS_COMPILE=arm-linux-gnueabihf- zImage - получаем образ ядра, используя кросс-компилятор
+
+2. Теперь нужен dtb-файл, содержащий конфигурацию для устройств с процессором Cortex-A9. В том же репозитории пишу следующие команды:
+    ARCH=arm make dtbs
+    Ищем нужный файл - express-v2p-ca9.dtb
+
+3. Пишем программу init.c, выводящую строку, для начальной инциализации ядра при запуске. Используем кросс-компилятор:
+    arm-linux-gnueabihf-gcc -static init.c -o init
+    echo init | cpio -o -H newc | gzip > initramfs1.cpio.gz
+
+4.  Теперь есть все файлы, чтобы запустить ядро с инциализацией. Для запуска используется эмуляотр ПО QEMU. Результат на рисунке init_hello.png:
+    QEMU_AUDIO_DRV=none qemu-system-arm -M vexpress-a9 -kernel zImage -dtb vexpress-v2p-ca9.dtb -initrd initramfs1.cpio.gz -append "console=ttyAMA0" -nographic
+
+5. Второй этап - сборка и конфигурация файловой системы с помощью busybox
+    Скачиваем архив с утилитой с официального сайта и прописываем команды:
+        - ARCH=arm make defconfig
+        - Затем открываем menuconfig где меняем следующие параметры:
+            *Settings -> Build Options -> Build static binary
+            *Settings -> Build Options -> CROSS_COMPILE=arm-linux-gnueabihf-
+        - ARCH=arm make
+        - ARCH=arm make install
+        - cd _install 
+        - find . | cpio -o -H newc | gzip > initramfs2.cpio.gz 
+
+6. Снова запускаем ядро, но в этот раз у нас есть полноценная файловая система. Результат на рисунке init_busubox.png:
+    QEMU_AUDIO_DRV=none qemu-system-arm -M vexpress-a9 -kernel zImage -dtb vexpress-v2p-ca9.dtb -initrd initramfs2.cpio.gz -append "console=ttyAMA0 rdinit=bin/ash" -nographic
+    

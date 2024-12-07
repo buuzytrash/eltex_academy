@@ -1,0 +1,29 @@
+1. Собираем zlib
+    CC=arm-linux-gnueabihf-gcc ./configure --static --prefix=$PWD/_install
+    make
+    make install
+
+2. Собираю OpenSSL
+    ./Configure linux-armv4 --prefix=$PWD/_install --cross-compile-prefix=arm-linux-gnueabihf- no-shared
+    make depend
+    make build_libs
+    make build_programs LDFLAGS="-static"
+    make install
+
+3. Собираю (OpenSSH)
+    export CC=arm-linux-gnueabihf-gcc
+    export CFLAGS="-I/home/buuzytrash/yadro/openssl-1.1.1c/_install/include -I/home/buuzytrash/yadro/zlib-1.2.13/_install/include"
+    export LDFLAGS="-I/home/buuzytrash/yadro/openssl-1.1.1c/_install/include -I/home/buuzytrash/yadro/zlib-1.2.13/_install/include"
+    export PKG_CONFIG_PATH=/home/buuzytrash/yadro/openssl-1.1.1c/_install/lib/pkgconfig:/home/buuzytrash/yadro/zlib-1.2.13/_install/lib/pkgconfig
+    ./configure --host=arm-linux-gnueabihf --prefix=$PWD/_install --with-ssl-dir=/home/buuzytrash/yadro/openssl-1.1.1c --with-zlib=/home/buuzytrash/yadro/zlib-1.2.13
+    make
+    sudo make install
+
+4. Переносим файлы openssh в нашу файловую систему собранную с помощью busybox и вводим команду:
+    find . | cpio -o -H newc | gzip > initramfs3.cpio.gz 
+
+
+5. Запускаю
+    QEMU_AUDIO_DRV=none qemu-system-arm -M vexpress-a9 -kernel zImage -dtb vexpress-v2p-ca9.dtb -initrd initramfs3.cpio.gz -append "console=ttyAMA0 rdinit=bin/ash" -nographic 
+
+ИТОГ: запускается ssh, но не работают другие команды, работавшие в initramfs2.cpio.gz, реультат на рисунке ssh.png
