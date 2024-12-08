@@ -2,48 +2,38 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ipc.h>
-#include <sys/msg.h>
-#include <sys/types.h>
+#include <sys/shm.h>
+#include <unistd.h>
 
-#define N 128
+#define SHM_NAME "system_v_shm"
+#define SHM_SIZE 1024
 
-typedef struct message_buffer
-{
-  long mtype;
-  char mtext[N];
-} msg_buf;
+int main() {
+  int shmid;
+  char *shm;
+  const char *message = "Hello!";
+  key_t key = ftok(SHM_NAME, 54);
 
-int main()
-{
-  key_t key;
-  int msgid;
-
-  msg_buf message;
-
-  key = ftok(".", 'A');
-  if (key == -1) {
-    perror("ftok");
+  shmid = shmget(key, SHM_SIZE, 0666);
+  if (shmid < 0) {
+    perror("shmget");
     exit(EXIT_FAILURE);
   }
 
-  msgid = msgget(key, 0666);
-  if (msgid == -1) {
-    perror("msgget");
+  shm = shmat(shmid, NULL, 0);
+  if (shm == (char *)-1) {
+    perror("shmat");
     exit(EXIT_FAILURE);
   }
 
-  if (msgrcv(msgid, &message, sizeof(message.mtext), 1, 0) == -1) {
-    perror("msgrcv");
+  printf("Сообщение полученно от сервера: %s\n", shm);
+  memcpy(shm, message, strlen(message) + 1);
+  printf("Сообщение отправленно на сервер: %s\n", message);
+
+  if (shmdt(shm) == -1) {
+    perror("shmdt");
     exit(EXIT_FAILURE);
   }
 
-  printf("Полученное сообщение в клиенте: %s\n", message.mtext);
-
-  message.mtype = 2;
-  strcpy(message.mtext, "Hello!");
-  if (msgsnd(msgid, &message, sizeof(message.mtext), 0) == -1) {
-    perror("msgsnd");
-    exit(EXIT_FAILURE);
-  }
   return 0;
 }
